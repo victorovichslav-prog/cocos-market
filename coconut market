@@ -74,7 +74,19 @@
     }
     input, textarea, select { font-size: 16px; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Загрузка Supabase с резервным вариантом -->
+  <script>
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      script.onerror = function() {
+        var fallback = document.createElement('script');
+        fallback.src = 'https://unpkg.com/@supabase/supabase-js@2';
+        document.head.appendChild(fallback);
+      };
+      document.head.appendChild(script);
+    }
+  </script>
 </head>
 <body>
 <div class="app">
@@ -247,515 +259,523 @@
 
 <script>
   (function(){
-    const SUPABASE_URL = 'https://owoksgyuvgvdhqrqnuwf.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93b2tzZ3l1dmd2ZGhxcnFudXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDQ5MTQsImV4cCI6MjA5MTY4MDkxNH0.zhZWb041DDu7IH3_9_FC4cCqYerWz_NXUil5o1jvnVg';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // ---------- ЛОКАЛИЗАЦИЯ ----------
-    const translations = {
-      ru: {
-        home: '🏠 Главная', favorites: '❤️ Избранное', profile: '👤 Профиль', add: '➕ Добавить',
-        all_products: 'Все товары', login_to_see: 'Войдите, чтобы увидеть товары',
-        favorites_title: 'Избранное', no_favorites: 'Вы пока ничего не добавили в избранное',
-        all_orders: '📦 Все заказы', returns: '↩️ Возвраты', balance: '💰 Баланс средств (Кокос Коин)',
-        premium: '👑 Кокос Маркет Премиум', my_market: '🏪 Мой маркет', settings: '⚙️ Настройки',
-        my_products: '📦 Мои товары', rejected_products: '❌ Отклонённые товары',
-        support: '🎧 Поддержка', random_cocos: '🎲 Рандом Кокос',
-        add_product: '➕ Добавить товар', title: 'Название', description: 'Описание',
-        characteristics: 'Характеристики', price: 'Цена (₽)', location: 'Откуда отправка',
-        photos: 'Фото (до 5 шт.)', agree: 'Я соглашаюсь с лицензионным соглашением Кокос',
-        submit: '🚀 Отправить на модерацию', login_title: 'Вход в Кокос Маркет', email: 'Твой Email',
-        name: 'Твоё имя', get_code: '📧 Получить код', code: 'Код из письма (6 цифр)',
-        confirm: '✅ Подтвердить', back: '← Назад', settings_title: '⚙️ Настройки',
-        change_avatar: '📸 Сменить фото профиля', change_name: '✏️ Публичное имя',
-        my_account: '👤 Мой аккаунт', notifications: '🔔 Уведомления', currency: '💱 Валюта',
-        dark_theme: '🌙 Тёмная тема', language: '🌐 Язык', close: 'Закрыть',
-        roulette: '🎰 Кокос Рулетка', prize: 'Выпал приз:', spin: '🎲 Крутить', logout: '🚪 Выйти',
-        order_btn: '🛒 Заказать', details_btn: 'Подробнее', status: 'Статус'
-      },
-      en: {
-        home: '🏠 Home', favorites: '❤️ Favorites', profile: '👤 Profile', add: '➕ Add',
-        all_products: 'All products', login_to_see: 'Login to see products',
-        favorites_title: 'Favorites', no_favorites: 'You have no favorites yet',
-        all_orders: '📦 All orders', returns: '↩️ Returns', balance: '💰 Balance (Cocos Coin)',
-        premium: '👑 Cocos Market Premium', my_market: '🏪 My Market', settings: '⚙️ Settings',
-        my_products: '📦 My products', rejected_products: '❌ Rejected products',
-        support: '🎧 Support', random_cocos: '🎲 Random Cocos',
-        add_product: '➕ Add product', title: 'Title', description: 'Description',
-        characteristics: 'Characteristics', price: 'Price (₽)', location: 'Shipping from',
-        photos: 'Photos (up to 5)', agree: 'I agree to the Cocos license agreement',
-        submit: '🚀 Submit for moderation', login_title: 'Login to Cocos Market', email: 'Your Email',
-        name: 'Your name', get_code: '📧 Get code', code: 'Code from email (6 digits)',
-        confirm: '✅ Confirm', back: '← Back', settings_title: '⚙️ Settings',
-        change_avatar: '📸 Change profile photo', change_name: '✏️ Public name',
-        my_account: '👤 My account', notifications: '🔔 Notifications', currency: '💱 Currency',
-        dark_theme: '🌙 Dark theme', language: '🌐 Language', close: 'Close',
-        roulette: '🎰 Cocos Roulette', prize: 'Prize:', spin: '🎲 Spin', logout: '🚪 Logout',
-        order_btn: '🛒 Order', details_btn: 'Details', status: 'Status'
-      },
-      zh: {
-        home: '🏠 首页', favorites: '❤️ 收藏', profile: '👤 个人资料', add: '➕ 添加',
-        all_products: '所有商品', login_to_see: '登录后查看商品',
-        favorites_title: '收藏', no_favorites: '暂无收藏',
-        all_orders: '📦 全部订单', returns: '↩️ 退货', balance: '💰 余额 (椰子币)',
-        premium: '👑 椰子市场高级版', my_market: '🏪 我的市场', settings: '⚙️ 设置',
-        my_products: '📦 我的商品', rejected_products: '❌ 被拒商品',
-        support: '🎧 支持', random_cocos: '🎲 随机椰子',
-        add_product: '➕ 添加商品', title: '标题', description: '描述',
-        characteristics: '特性', price: '价格 (₽)', location: '发货地',
-        photos: '照片 (最多5张)', agree: '我同意椰子许可协议',
-        submit: '🚀 提交审核', login_title: '登录椰子市场', email: '邮箱',
-        name: '姓名', get_code: '📧 获取验证码', code: '邮件验证码 (6位)',
-        confirm: '✅ 确认', back: '← 返回', settings_title: '⚙️ 设置',
-        change_avatar: '📸 更换头像', change_name: '✏️ 公开名称',
-        my_account: '👤 我的账户', notifications: '🔔 通知', currency: '💱 货币',
-        dark_theme: '🌙 深色主题', language: '🌐 语言', close: '关闭',
-        roulette: '🎰 椰子轮盘', prize: '奖品:', spin: '🎲 旋转', logout: '🚪 登出',
-        order_btn: '🛒 订购', details_btn: '详情', status: '状态'
-      },
-      bg: {
-        home: '🏠 Начало', favorites: '❤️ Любими', profile: '👤 Профил', add: '➕ Добави',
-        all_products: 'Всички продукти', login_to_see: 'Влезте, за да видите продукти',
-        favorites_title: 'Любими', no_favorites: 'Все още нямате любими',
-        all_orders: '📦 Всички поръчки', returns: '↩️ Връщания', balance: '💰 Баланс (Кокос Коин)',
-        premium: '👑 Кокос Маркет Премиум', my_market: '🏪 Моят пазар', settings: '⚙️ Настройки',
-        my_products: '📦 Моите продукти', rejected_products: '❌ Отхвърлени продукти',
-        support: '🎧 Поддръжка', random_cocos: '🎲 Случаен Кокос',
-        add_product: '➕ Добави продукт', title: 'Заглавие', description: 'Описание',
-        characteristics: 'Характеристики', price: 'Цена (₽)', location: 'Изпращане от',
-        photos: 'Снимки (до 5)', agree: 'Съгласен съм с лицензионното споразумение на Кокос',
-        submit: '🚀 Изпрати за модерация', login_title: 'Вход в Кокос Маркет', email: 'Имейл',
-        name: 'Име', get_code: '📧 Получи код', code: 'Код от имейл (6 цифри)',
-        confirm: '✅ Потвърди', back: '← Назад', settings_title: '⚙️ Настройки',
-        change_avatar: '📸 Смени профилна снимка', change_name: '✏️ Публично име',
-        my_account: '👤 Моят акаунт', notifications: '🔔 Известия', currency: '💱 Валута',
-        dark_theme: '🌙 Тъмна тема', language: '🌐 Език', close: 'Затвори',
-        roulette: '🎰 Кокос Рулетка', prize: 'Награда:', spin: '🎲 Завърти', logout: '🚪 Изход',
-        order_btn: '🛒 Поръчай', details_btn: 'Детайли', status: 'Статус'
+    // Ждём загрузки Supabase
+    function initSupabase() {
+      if (!window.supabase || !window.supabase.createClient) {
+        setTimeout(initSupabase, 100);
+        return;
       }
-    };
+      const SUPABASE_URL = 'https://owoksgyuvgvdhqrqnuwf.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93b2tzZ3l1dmd2ZGhxcnFudXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDQ5MTQsImV4cCI6MjA5MTY4MDkxNH0.zhZWb041DDu7IH3_9_FC4cCqYerWz_NXUil5o1jvnVg';
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentLang = localStorage.getItem('lang') || 'ru';
-    function t(key) { return translations[currentLang]?.[key] || key; }
-    function applyTranslations() {
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (el.tagName === 'INPUT' && el.type === 'text' || el.tagName === 'TEXTAREA') {
-          el.placeholder = t(key);
-        } else {
-          el.textContent = t(key);
+      // ---------- ЛОКАЛИЗАЦИЯ ----------
+      const translations = {
+        ru: {
+          home: '🏠 Главная', favorites: '❤️ Избранное', profile: '👤 Профиль', add: '➕ Добавить',
+          all_products: 'Все товары', login_to_see: 'Войдите, чтобы увидеть товары',
+          favorites_title: 'Избранное', no_favorites: 'Вы пока ничего не добавили в избранное',
+          all_orders: '📦 Все заказы', returns: '↩️ Возвраты', balance: '💰 Баланс средств (Кокос Коин)',
+          premium: '👑 Кокос Маркет Премиум', my_market: '🏪 Мой маркет', settings: '⚙️ Настройки',
+          my_products: '📦 Мои товары', rejected_products: '❌ Отклонённые товары',
+          support: '🎧 Поддержка', random_cocos: '🎲 Рандом Кокос',
+          add_product: '➕ Добавить товар', title: 'Название', description: 'Описание',
+          characteristics: 'Характеристики', price: 'Цена (₽)', location: 'Откуда отправка',
+          photos: 'Фото (до 5 шт.)', agree: 'Я соглашаюсь с лицензионным соглашением Кокос',
+          submit: '🚀 Отправить на модерацию', login_title: 'Вход в Кокос Маркет', email: 'Твой Email',
+          name: 'Твоё имя', get_code: '📧 Получить код', code: 'Код из письма (6 цифр)',
+          confirm: '✅ Подтвердить', back: '← Назад', settings_title: '⚙️ Настройки',
+          change_avatar: '📸 Сменить фото профиля', change_name: '✏️ Публичное имя',
+          my_account: '👤 Мой аккаунт', notifications: '🔔 Уведомления', currency: '💱 Валюта',
+          dark_theme: '🌙 Тёмная тема', language: '🌐 Язык', close: 'Закрыть',
+          roulette: '🎰 Кокос Рулетка', prize: 'Выпал приз:', spin: '🎲 Крутить', logout: '🚪 Выйти',
+          order_btn: '🛒 Заказать', details_btn: 'Подробнее', status: 'Статус', no_products: 'Нет товаров'
+        },
+        en: {
+          home: '🏠 Home', favorites: '❤️ Favorites', profile: '👤 Profile', add: '➕ Add',
+          all_products: 'All products', login_to_see: 'Login to see products',
+          favorites_title: 'Favorites', no_favorites: 'You have no favorites yet',
+          all_orders: '📦 All orders', returns: '↩️ Returns', balance: '💰 Balance (Cocos Coin)',
+          premium: '👑 Cocos Market Premium', my_market: '🏪 My Market', settings: '⚙️ Settings',
+          my_products: '📦 My products', rejected_products: '❌ Rejected products',
+          support: '🎧 Support', random_cocos: '🎲 Random Cocos',
+          add_product: '➕ Add product', title: 'Title', description: 'Description',
+          characteristics: 'Characteristics', price: 'Price (₽)', location: 'Shipping from',
+          photos: 'Photos (up to 5)', agree: 'I agree to the Cocos license agreement',
+          submit: '🚀 Submit for moderation', login_title: 'Login to Cocos Market', email: 'Your Email',
+          name: 'Your name', get_code: '📧 Get code', code: 'Code from email (6 digits)',
+          confirm: '✅ Confirm', back: '← Back', settings_title: '⚙️ Settings',
+          change_avatar: '📸 Change profile photo', change_name: '✏️ Public name',
+          my_account: '👤 My account', notifications: '🔔 Notifications', currency: '💱 Currency',
+          dark_theme: '🌙 Dark theme', language: '🌐 Language', close: 'Close',
+          roulette: '🎰 Cocos Roulette', prize: 'Prize:', spin: '🎲 Spin', logout: '🚪 Logout',
+          order_btn: '🛒 Order', details_btn: 'Details', status: 'Status', no_products: 'No products'
+        },
+        zh: {
+          home: '🏠 首页', favorites: '❤️ 收藏', profile: '👤 个人资料', add: '➕ 添加',
+          all_products: '所有商品', login_to_see: '登录后查看商品',
+          favorites_title: '收藏', no_favorites: '暂无收藏',
+          all_orders: '📦 全部订单', returns: '↩️ 退货', balance: '💰 余额 (椰子币)',
+          premium: '👑 椰子市场高级版', my_market: '🏪 我的市场', settings: '⚙️ 设置',
+          my_products: '📦 我的商品', rejected_products: '❌ 被拒商品',
+          support: '🎧 支持', random_cocos: '🎲 随机椰子',
+          add_product: '➕ 添加商品', title: '标题', description: '描述',
+          characteristics: '特性', price: '价格 (₽)', location: '发货地',
+          photos: '照片 (最多5张)', agree: '我同意椰子许可协议',
+          submit: '🚀 提交审核', login_title: '登录椰子市场', email: '邮箱',
+          name: '姓名', get_code: '📧 获取验证码', code: '邮件验证码 (6位)',
+          confirm: '✅ 确认', back: '← 返回', settings_title: '⚙️ 设置',
+          change_avatar: '📸 更换头像', change_name: '✏️ 公开名称',
+          my_account: '👤 我的账户', notifications: '🔔 通知', currency: '💱 货币',
+          dark_theme: '🌙 深色主题', language: '🌐 语言', close: '关闭',
+          roulette: '🎰 椰子轮盘', prize: '奖品:', spin: '🎲 旋转', logout: '🚪 登出',
+          order_btn: '🛒 订购', details_btn: '详情', status: '状态', no_products: '暂无商品'
+        },
+        bg: {
+          home: '🏠 Начало', favorites: '❤️ Любими', profile: '👤 Профил', add: '➕ Добави',
+          all_products: 'Всички продукти', login_to_see: 'Влезте, за да видите продукти',
+          favorites_title: 'Любими', no_favorites: 'Все още нямате любими',
+          all_orders: '📦 Всички поръчки', returns: '↩️ Връщания', balance: '💰 Баланс (Кокос Коин)',
+          premium: '👑 Кокос Маркет Премиум', my_market: '🏪 Моят пазар', settings: '⚙️ Настройки',
+          my_products: '📦 Моите продукти', rejected_products: '❌ Отхвърлени продукти',
+          support: '🎧 Поддръжка', random_cocos: '🎲 Случаен Кокос',
+          add_product: '➕ Добави продукт', title: 'Заглавие', description: 'Описание',
+          characteristics: 'Характеристики', price: 'Цена (₽)', location: 'Изпращане от',
+          photos: 'Снимки (до 5)', agree: 'Съгласен съм с лицензионното споразумение на Кокос',
+          submit: '🚀 Изпрати за модерация', login_title: 'Вход в Кокос Маркет', email: 'Имейл',
+          name: 'Име', get_code: '📧 Получи код', code: 'Код от имейл (6 цифри)',
+          confirm: '✅ Потвърди', back: '← Назад', settings_title: '⚙️ Настройки',
+          change_avatar: '📸 Смени профилна снимка', change_name: '✏️ Публично име',
+          my_account: '👤 Моят акаунт', notifications: '🔔 Известия', currency: '💱 Валута',
+          dark_theme: '🌙 Тъмна тема', language: '🌐 Език', close: 'Затвори',
+          roulette: '🎰 Кокос Рулетка', prize: 'Награда:', spin: '🎲 Завърти', logout: '🚪 Изход',
+          order_btn: '🛒 Поръчай', details_btn: 'Детайли', status: 'Статус', no_products: 'Няма продукти'
         }
-      });
-      document.querySelectorAll('.product-card .btn').forEach(btn => {
-        if (btn.textContent.includes('Заказать') || btn.textContent.includes('Order') || btn.textContent.includes('订购') || btn.textContent.includes('Поръчай')) {
-          btn.textContent = t('order_btn');
-        }
-      });
-    }
+      };
 
-    const langSelect = document.getElementById('languageSelect');
-    if (langSelect) {
-      langSelect.value = currentLang;
-      langSelect.addEventListener('change', (e) => {
-        currentLang = e.target.value;
-        localStorage.setItem('lang', currentLang);
-        applyTranslations();
-        if (currentUser) {
-          if (document.getElementById('home').classList.contains('active')) loadProducts();
-          if (document.getElementById('favorites').classList.contains('active')) loadFavorites();
-          if (document.getElementById('profile').classList.contains('active')) loadProfileData();
-        }
-      });
-    }
-    applyTranslations();
-
-    // ---------- СОСТОЯНИЕ ----------
-    let currentUser = null;
-    let currentEmail = '';
-    let pendingName = '';
-    let selectedFiles = [];
-
-    // DOM элементы
-    const loginModal = document.getElementById('loginModal');
-    const loginBtn = document.getElementById('loginBtn');
-    const userIconBtn = document.getElementById('userIconBtn');
-    const emailStep = document.getElementById('emailStep');
-    const codeStep = document.getElementById('codeStep');
-    const loginEmail = document.getElementById('loginEmail');
-    const loginNameInput = document.getElementById('loginNameInput');
-    const sendCodeBtn = document.getElementById('sendCodeBtn');
-    const emailMessage = document.getElementById('emailMessage');
-    const loginCode = document.getElementById('loginCode');
-    const verifyCodeBtn = document.getElementById('verifyCodeBtn');
-    const codeMessage = document.getElementById('codeMessage');
-    const backToEmailBtn = document.getElementById('backToEmailBtn');
-    const profilePopup = document.getElementById('profilePopup');
-    const profilePopupName = document.getElementById('profilePopupName');
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    const productTitle = document.getElementById('productTitle');
-    const productDesc = document.getElementById('productDesc');
-    const productSpecs = document.getElementById('productSpecs');
-    const productPrice = document.getElementById('productPrice');
-    const productLocation = document.getElementById('productLocation');
-    const productPhotos = document.getElementById('productPhotos');
-    const photoPreview = document.getElementById('photoPreview');
-    const agreeCheckbox = document.getElementById('agreeCheckbox');
-    const submitProductBtn = document.getElementById('submitProductBtn');
-    const addMessage = document.getElementById('addMessage');
-
-    const productModal = document.getElementById('productModal');
-    const productDetailContent = document.getElementById('productDetailContent');
-    const closeProductModal = document.getElementById('closeProductModal');
-
-    const profileAvatar = document.getElementById('profileAvatar');
-    const profileDisplayName = document.getElementById('profileDisplayName');
-    const profileEmail = document.getElementById('profileEmail');
-    const profileMenuBtn = document.getElementById('profileMenuBtn');
-    const contextMenu = document.getElementById('contextMenu');
-    const settingsModal = document.getElementById('settingsModal');
-    const rouletteModal = document.getElementById('rouletteModal');
-    const themeToggle = document.getElementById('themeToggle');
-    const listModal = document.getElementById('listModal');
-    const listModalTitle = document.getElementById('listModalTitle');
-    const listModalContent = document.getElementById('listModalContent');
-    const closeListModal = document.getElementById('closeListModal');
-
-    // === ИЗБРАННОЕ ===
-    async function isFavorite(productId) {
-      if (!currentUser) return false;
-      const { data } = await supabase.from('favorites').select('id').eq('user_id', currentUser.id).eq('product_id', productId).maybeSingle();
-      return !!data;
-    }
-
-    async function toggleFavorite(productId, favoriteBtn) {
-      if (!currentUser) { alert(t('login_to_see')); return; }
-      const fav = await isFavorite(productId);
-      if (fav) {
-        await supabase.from('favorites').delete().eq('user_id', currentUser.id).eq('product_id', productId);
-        favoriteBtn.classList.remove('active');
-        favoriteBtn.textContent = '🤍';
-      } else {
-        await supabase.from('favorites').insert({ user_id: currentUser.id, product_id: productId });
-        favoriteBtn.classList.add('active');
-        favoriteBtn.textContent = '❤️';
+      let currentLang = localStorage.getItem('lang') || 'ru';
+      function t(key) { return translations[currentLang]?.[key] || key; }
+      function applyTranslations() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          if (el.tagName === 'INPUT' && el.type === 'text' || el.tagName === 'TEXTAREA') {
+            el.placeholder = t(key);
+          } else {
+            el.textContent = t(key);
+          }
+        });
+        document.querySelectorAll('.product-card .btn').forEach(btn => {
+          if (btn.textContent.includes('Заказать') || btn.textContent.includes('Order') || btn.textContent.includes('订购') || btn.textContent.includes('Поръчай')) {
+            btn.textContent = t('order_btn');
+          }
+        });
       }
-      if (document.getElementById('favorites').classList.contains('active')) loadFavorites();
-    }
 
-    function createFavoriteButton(productId, isFav) {
-      const btn = document.createElement('button');
-      btn.className = 'favorite-btn' + (isFav ? ' active' : '');
-      btn.textContent = isFav ? '❤️' : '🤍';
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleFavorite(productId, btn);
-      });
-      return btn;
-    }
+      const langSelect = document.getElementById('languageSelect');
+      if (langSelect) {
+        langSelect.value = currentLang;
+        langSelect.addEventListener('change', (e) => {
+          currentLang = e.target.value;
+          localStorage.setItem('lang', currentLang);
+          applyTranslations();
+          if (currentUser) {
+            if (document.getElementById('home').classList.contains('active')) loadProducts();
+            if (document.getElementById('favorites').classList.contains('active')) loadFavorites();
+            if (document.getElementById('profile').classList.contains('active')) loadProfileData();
+          }
+        });
+      }
+      applyTranslations();
 
-    async function loadFavorites() {
-      const container = document.getElementById('favoritesContainer');
-      if (!currentUser) { container.innerHTML = `<p style="color:#7f6b58;">${t('login_to_see')}</p>`; return; }
-      container.innerHTML = '<p>Загрузка...</p>';
-      const { data: favs } = await supabase.from('favorites').select('product_id').eq('user_id', currentUser.id);
-      if (!favs?.length) { container.innerHTML = `<p>${t('no_favorites')}</p>`; return; }
-      const productIds = favs.map(f => f.product_id);
-      const { data: products } = await supabase.from('products').select('*').in('id', productIds);
-      renderProductGrid(products, container);
-    }
+      // ---------- СОСТОЯНИЕ ----------
+      let currentUser = null;
+      let currentEmail = '';
+      let pendingName = '';
+      let selectedFiles = [];
 
-    function renderProductGrid(products, container) {
-      if (!products?.length) { container.innerHTML = `<p>${t('no_products') || 'Нет товаров'}</p>`; return; }
-      let html = '';
-      products.forEach(product => {
-        const imageUrl = product.image_urls?.[0] || 'https://via.placeholder.com/300x200?text=🥥';
-        html += `<div class="product-card" data-product-id="${product.id}">
-          <img class="product-image" src="${imageUrl}" alt="${product.title}">
-          <div class="product-title">${product.title}</div>
-          <div class="product-price">${product.price} ₽</div>
-          <div style="font-size:12px; color:#7f6b58;">📍 ${product.location}</div>
-          <button class="btn" style="margin-top:8px;">${t('order_btn')}</button>
-        </div>`;
-      });
-      container.innerHTML = html;
-      container.querySelectorAll('.product-card').forEach(async (card) => {
-        const productId = card.dataset.productId;
+      // DOM элементы
+      const loginModal = document.getElementById('loginModal');
+      const loginBtn = document.getElementById('loginBtn');
+      const userIconBtn = document.getElementById('userIconBtn');
+      const emailStep = document.getElementById('emailStep');
+      const codeStep = document.getElementById('codeStep');
+      const loginEmail = document.getElementById('loginEmail');
+      const loginNameInput = document.getElementById('loginNameInput');
+      const sendCodeBtn = document.getElementById('sendCodeBtn');
+      const emailMessage = document.getElementById('emailMessage');
+      const loginCode = document.getElementById('loginCode');
+      const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+      const codeMessage = document.getElementById('codeMessage');
+      const backToEmailBtn = document.getElementById('backToEmailBtn');
+      const profilePopup = document.getElementById('profilePopup');
+      const profilePopupName = document.getElementById('profilePopupName');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      const productTitle = document.getElementById('productTitle');
+      const productDesc = document.getElementById('productDesc');
+      const productSpecs = document.getElementById('productSpecs');
+      const productPrice = document.getElementById('productPrice');
+      const productLocation = document.getElementById('productLocation');
+      const productPhotos = document.getElementById('productPhotos');
+      const photoPreview = document.getElementById('photoPreview');
+      const agreeCheckbox = document.getElementById('agreeCheckbox');
+      const submitProductBtn = document.getElementById('submitProductBtn');
+      const addMessage = document.getElementById('addMessage');
+
+      const productModal = document.getElementById('productModal');
+      const productDetailContent = document.getElementById('productDetailContent');
+      const closeProductModal = document.getElementById('closeProductModal');
+
+      const profileAvatar = document.getElementById('profileAvatar');
+      const profileDisplayName = document.getElementById('profileDisplayName');
+      const profileEmail = document.getElementById('profileEmail');
+      const profileMenuBtn = document.getElementById('profileMenuBtn');
+      const contextMenu = document.getElementById('contextMenu');
+      const settingsModal = document.getElementById('settingsModal');
+      const rouletteModal = document.getElementById('rouletteModal');
+      const themeToggle = document.getElementById('themeToggle');
+      const listModal = document.getElementById('listModal');
+      const listModalTitle = document.getElementById('listModalTitle');
+      const listModalContent = document.getElementById('listModalContent');
+      const closeListModal = document.getElementById('closeListModal');
+
+      // === ИЗБРАННОЕ ===
+      async function isFavorite(productId) {
+        if (!currentUser) return false;
+        const { data } = await supabase.from('favorites').select('id').eq('user_id', currentUser.id).eq('product_id', productId).maybeSingle();
+        return !!data;
+      }
+
+      async function toggleFavorite(productId, favoriteBtn) {
+        if (!currentUser) { alert(t('login_to_see')); return; }
         const fav = await isFavorite(productId);
-        const btn = createFavoriteButton(productId, fav);
-        card.style.position = 'relative';
-        card.appendChild(btn);
-        card.addEventListener('click', (e) => {
-          if (e.target.closest('.favorite-btn')) return;
-          showProductDetails(productId);
-        });
-        card.querySelector('.btn').addEventListener('click', (e) => {
+        if (fav) {
+          await supabase.from('favorites').delete().eq('user_id', currentUser.id).eq('product_id', productId);
+          favoriteBtn.classList.remove('active');
+          favoriteBtn.textContent = '🤍';
+        } else {
+          await supabase.from('favorites').insert({ user_id: currentUser.id, product_id: productId });
+          favoriteBtn.classList.add('active');
+          favoriteBtn.textContent = '❤️';
+        }
+        if (document.getElementById('favorites').classList.contains('active')) loadFavorites();
+      }
+
+      function createFavoriteButton(productId, isFav) {
+        const btn = document.createElement('button');
+        btn.className = 'favorite-btn' + (isFav ? ' active' : '');
+        btn.textContent = isFav ? '❤️' : '🤍';
+        btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          alert('Переход к заказу пока не готов');
+          toggleFavorite(productId, btn);
         });
-      });
-    }
+        return btn;
+      }
 
-    async function loadProducts() {
-      const container = document.getElementById('productsContainer');
-      if (!currentUser) { container.innerHTML = `<p>${t('login_to_see')}</p>`; return; }
-      container.innerHTML = '<p>Загрузка...</p>';
-      const { data: products } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-      renderProductGrid(products || [], container);
-    }
+      async function loadFavorites() {
+        const container = document.getElementById('favoritesContainer');
+        if (!currentUser) { container.innerHTML = `<p style="color:#7f6b58;">${t('login_to_see')}</p>`; return; }
+        container.innerHTML = '<p>Загрузка...</p>';
+        const { data: favs } = await supabase.from('favorites').select('product_id').eq('user_id', currentUser.id);
+        if (!favs?.length) { container.innerHTML = `<p>${t('no_favorites')}</p>`; return; }
+        const productIds = favs.map(f => f.product_id);
+        const { data: products } = await supabase.from('products').select('*').in('id', productIds);
+        renderProductGrid(products, container);
+      }
 
-    // === ЗАГРУЗКА ФОТО С ДОБАВЛЕНИЕМ ===
-    productPhotos.addEventListener('change', (e) => {
-      const newFiles = Array.from(e.target.files);
-      selectedFiles = [...selectedFiles, ...newFiles].slice(0, 5);
-      updatePhotoPreview();
-      productPhotos.value = '';
-    });
-
-    function updatePhotoPreview() {
-      photoPreview.innerHTML = '';
-      selectedFiles.forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          const img = document.createElement('img');
-          img.src = ev.target.result;
-          const removeBtn = document.createElement('button');
-          removeBtn.textContent = '✕';
-          removeBtn.style.position = 'absolute';
-          removeBtn.style.top = '-8px';
-          removeBtn.style.right = '-8px';
-          removeBtn.style.background = 'white';
-          removeBtn.style.border = 'none';
-          removeBtn.style.borderRadius = '50%';
-          removeBtn.style.width = '24px';
-          removeBtn.style.height = '24px';
-          removeBtn.style.cursor = 'pointer';
-          removeBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-          removeBtn.onclick = (e) => {
+      function renderProductGrid(products, container) {
+        if (!products?.length) { container.innerHTML = `<p>${t('no_products')}</p>`; return; }
+        let html = '';
+        products.forEach(product => {
+          const imageUrl = product.image_urls?.[0] || 'https://via.placeholder.com/300x200?text=🥥';
+          html += `<div class="product-card" data-product-id="${product.id}">
+            <img class="product-image" src="${imageUrl}" alt="${product.title}">
+            <div class="product-title">${product.title}</div>
+            <div class="product-price">${product.price} ₽</div>
+            <div style="font-size:12px; color:#7f6b58;">📍 ${product.location}</div>
+            <button class="btn" style="margin-top:8px;">${t('order_btn')}</button>
+          </div>`;
+        });
+        container.innerHTML = html;
+        container.querySelectorAll('.product-card').forEach(async (card) => {
+          const productId = card.dataset.productId;
+          const fav = await isFavorite(productId);
+          const btn = createFavoriteButton(productId, fav);
+          card.style.position = 'relative';
+          card.appendChild(btn);
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('.favorite-btn')) return;
+            showProductDetails(productId);
+          });
+          card.querySelector('.btn').addEventListener('click', (e) => {
             e.stopPropagation();
-            selectedFiles.splice(index, 1);
-            updatePhotoPreview();
+            alert('Переход к заказу пока не готов');
+          });
+        });
+      }
+
+      async function loadProducts() {
+        const container = document.getElementById('productsContainer');
+        if (!currentUser) { container.innerHTML = `<p>${t('login_to_see')}</p>`; return; }
+        container.innerHTML = '<p>Загрузка...</p>';
+        const { data: products } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+        renderProductGrid(products || [], container);
+      }
+
+      // === ЗАГРУЗКА ФОТО С ДОБАВЛЕНИЕМ ===
+      productPhotos.addEventListener('change', (e) => {
+        const newFiles = Array.from(e.target.files);
+        selectedFiles = [...selectedFiles, ...newFiles].slice(0, 5);
+        updatePhotoPreview();
+        productPhotos.value = '';
+      });
+
+      function updatePhotoPreview() {
+        photoPreview.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const img = document.createElement('img');
+            img.src = ev.target.result;
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = '✕';
+            removeBtn.style.position = 'absolute';
+            removeBtn.style.top = '-8px';
+            removeBtn.style.right = '-8px';
+            removeBtn.style.background = 'white';
+            removeBtn.style.border = 'none';
+            removeBtn.style.borderRadius = '50%';
+            removeBtn.style.width = '24px';
+            removeBtn.style.height = '24px';
+            removeBtn.style.cursor = 'pointer';
+            removeBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+            removeBtn.onclick = (e) => {
+              e.stopPropagation();
+              selectedFiles.splice(index, 1);
+              updatePhotoPreview();
+            };
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            wrapper.style.display = 'inline-block';
+            wrapper.appendChild(img);
+            wrapper.appendChild(removeBtn);
+            photoPreview.appendChild(wrapper);
           };
-          const wrapper = document.createElement('div');
-          wrapper.style.position = 'relative';
-          wrapper.style.display = 'inline-block';
-          wrapper.appendChild(img);
-          wrapper.appendChild(removeBtn);
-          photoPreview.appendChild(wrapper);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // === ДОБАВЛЕНИЕ ТОВАРА ===
-    submitProductBtn.addEventListener('click', async () => {
-      if (!currentUser) { addMessage.textContent = '❌ Сначала войдите'; return; }
-      const title = productTitle.value.trim();
-      const desc = productDesc.value.trim();
-      const specs = productSpecs.value.trim();
-      const price = productPrice.value.trim();
-      const location = productLocation.value.trim();
-      if (!title || !desc || !price || !location) { addMessage.textContent = '❌ Заполните все обязательные поля'; return; }
-      if (!agreeCheckbox.checked) { addMessage.textContent = '❌ Примите соглашение'; return; }
-      if (selectedFiles.length === 0) { addMessage.textContent = '❌ Добавьте хотя бы одно фото'; return; }
-
-      submitProductBtn.disabled = true;
-      addMessage.textContent = '⏳ Загружаем...';
-      try {
-        const imageUrls = [];
-        for (const file of selectedFiles) {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${currentUser.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-          const { error: uploadError } = await supabase.storage.from('product-images').upload(fileName, file);
-          if (uploadError) throw uploadError;
-          const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
-          imageUrls.push(urlData.publicUrl);
-        }
-        const { error: insertError } = await supabase.from('products').insert({
-          user_id: currentUser.id, title, description: desc, characteristics: specs,
-          price: parseFloat(price), location, image_urls: imageUrls, status: 'pending'
-        });
-        if (insertError) throw insertError;
-        addMessage.textContent = '✅ Товар отправлен на модерацию!';
-        productTitle.value = productDesc.value = productSpecs.value = productPrice.value = productLocation.value = '';
-        selectedFiles = []; updatePhotoPreview(); agreeCheckbox.checked = false;
-        if (document.getElementById('home').classList.contains('active')) loadProducts();
-      } catch (err) {
-        addMessage.textContent = `❌ Ошибка: ${err.message}`;
-      } finally {
-        submitProductBtn.disabled = false;
-      }
-    });
-
-    // === ПРОФИЛЬ ===
-    async function loadProfileData() {
-      if (!currentUser) return;
-      profileDisplayName.textContent = currentUser.name || 'Гость';
-      profileEmail.textContent = currentUser.email || '';
-      const { data: userProducts } = await supabase.from('products').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-      const myContainer = document.getElementById('myProductsContainer');
-      const rejectedContainer = document.getElementById('rejectedContainer');
-      const all = userProducts || [];
-      const rejected = all.filter(p => p.status === 'rejected');
-      const active = all.filter(p => p.status !== 'rejected');
-      myContainer.innerHTML = active.length ? '' : `<p>${t('no_products') || 'Нет товаров'}</p>`;
-      rejectedContainer.innerHTML = rejected.length ? '' : `<p>${t('no_products') || 'Нет товаров'}</p>`;
-      if (active.length) renderProductGrid(active, myContainer);
-      if (rejected.length) renderProductGrid(rejected, rejectedContainer);
-    }
-
-    // === ДЕТАЛИ ТОВАРА ===
-    async function showProductDetails(productId) {
-      const { data: product } = await supabase.from('products').select('*').eq('id', productId).single();
-      if (!product) return;
-      const images = product.image_urls?.length ? product.image_urls : ['https://via.placeholder.com/400x300?text=🥥'];
-      let currentIndex = 0;
-      function renderCarousel() {
-        return `<div class="carousel">
-          <img class="carousel-main" src="${images[currentIndex]}">
-          ${images.length > 1 ? `<div class="carousel-nav"><button class="carousel-btn" id="prevImage">←</button><span>${currentIndex+1}/${images.length}</span><button class="carousel-btn" id="nextImage">→</button></div>
-          <div class="carousel-thumbs">${images.map((url, i) => `<img class="carousel-thumb ${i===currentIndex?'active':''}" src="${url}" data-index="${i}">`).join('')}</div>` : ''}
-        </div>`;
-      }
-      productDetailContent.innerHTML = `${renderCarousel()}
-        <h2>${product.title}</h2><div style="font-size:24px;font-weight:bold;">${product.price} ₽</div>
-        <div>📍 ${product.location}</div><div>📝 ${product.description}</div>
-        ${product.characteristics ? `<div>📋 ${product.characteristics}</div>` : ''}
-        <button class="btn" id="orderFromDetailBtn">${t('order_btn')}</button>`;
-      if (images.length > 1) {
-        document.getElementById('prevImage').addEventListener('click', () => { currentIndex = (currentIndex-1+images.length)%images.length; updateCarousel(); });
-        document.getElementById('nextImage').addEventListener('click', () => { currentIndex = (currentIndex+1)%images.length; updateCarousel(); });
-        document.querySelectorAll('.carousel-thumb').forEach(t => t.addEventListener('click', (e) => { currentIndex = parseInt(e.target.dataset.index); updateCarousel(); }));
-        function updateCarousel() {
-          document.querySelector('.carousel-main').src = images[currentIndex];
-          document.querySelectorAll('.carousel-thumb').forEach((t, i) => t.classList.toggle('active', i===currentIndex));
-          document.querySelector('.carousel-nav span').textContent = `${currentIndex+1}/${images.length}`;
-        }
-      }
-      document.getElementById('orderFromDetailBtn').addEventListener('click', () => alert('Заказ пока не готов'));
-      productModal.classList.add('show');
-    }
-
-    closeProductModal.addEventListener('click', () => productModal.classList.remove('show'));
-    productModal.addEventListener('click', (e) => { if (e.target === productModal) productModal.classList.remove('show'); });
-
-    // === ВХОД ===
-    loginBtn.addEventListener('click', () => { loginModal.classList.add('show'); emailStep.style.display='block'; codeStep.style.display='none'; });
-    sendCodeBtn.addEventListener('click', async () => {
-      const email = loginEmail.value.trim(); const name = loginNameInput.value.trim();
-      if (!email || !name) { emailMessage.textContent = '❌ Заполните поля'; return; }
-      currentEmail = email; pendingName = name;
-      sendCodeBtn.disabled = true;
-      const { error } = await supabase.auth.signInWithOtp({ email });
-      if (error) { emailMessage.textContent = `❌ ${error.message}`; sendCodeBtn.disabled = false; }
-      else { emailMessage.textContent = '✅ Код отправлен!'; emailStep.style.display='none'; codeStep.style.display='block'; sendCodeBtn.disabled = false; }
-    });
-    verifyCodeBtn.addEventListener('click', async () => {
-      const code = loginCode.value.trim();
-      if (code.length !== 6) { codeMessage.textContent = '❌ Введите 6 цифр'; return; }
-      verifyCodeBtn.disabled = true;
-      const { data, error } = await supabase.auth.verifyOtp({ email: currentEmail, token: code, type: 'email' });
-      if (error) { codeMessage.textContent = `❌ ${error.message}`; verifyCodeBtn.disabled = false; return; }
-      const user = data.user;
-      let { data: dbUser } = await supabase.from('users').select('*').eq('email', user.email).maybeSingle();
-      if (!dbUser) {
-        const { data: newUser } = await supabase.from('users').insert({ name: pendingName, email: user.email }).select().single();
-        dbUser = newUser;
-      } else {
-        await supabase.from('users').update({ name: pendingName }).eq('id', dbUser.id);
-        dbUser.name = pendingName;
-      }
-      currentUser = dbUser;
-      localStorage.setItem('coconutUserId', dbUser.id);
-      loginBtn.style.display = 'none'; userIconBtn.style.display = 'flex';
-      profilePopupName.textContent = dbUser.name;
-      loginModal.classList.remove('show');
-      emailStep.style.display='block'; codeStep.style.display='none';
-      loginEmail.value = loginNameInput.value = loginCode.value = '';
-      loadProducts();
-    });
-    backToEmailBtn.addEventListener('click', () => { emailStep.style.display='block'; codeStep.style.display='none'; });
-    logoutBtn.addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      currentUser = null; localStorage.clear();
-      loginBtn.style.display = 'flex'; userIconBtn.style.display = 'none';
-      document.getElementById('productsContainer').innerHTML = `<p>${t('login_to_see')}</p>`;
-    });
-
-    // === ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ===
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(btn.dataset.tab).classList.add('active');
-        if (btn.dataset.tab === 'home') loadProducts();
-        if (btn.dataset.tab === 'favorites') loadFavorites();
-        if (btn.dataset.tab === 'profile') loadProfileData();
-      });
-    });
-
-    // === МЕНЮ ПРОФИЛЯ ===
-    profileMenuBtn.addEventListener('click', () => contextMenu.classList.toggle('show'));
-    document.querySelectorAll('.context-item').forEach(item => item.addEventListener('click', (e) => {
-      const action = item.dataset.action;
-      contextMenu.classList.remove('show');
-      if (action === 'orders') showOrdersModal();
-      else if (action === 'mymarket') showMyMarketModal();
-      else if (action === 'settings') settingsModal.classList.add('show');
-      else alert(`Раздел "${item.textContent}" в разработке`);
-    }));
-
-    async function showOrdersModal() {
-      listModalTitle.textContent = t('all_orders');
-      listModalContent.innerHTML = '<p>Загрузка...</p>';
-      listModal.classList.add('show');
-      const { data: orders } = await supabase.from('orders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-      if (!orders?.length) { listModalContent.innerHTML = '<p>Нет заказов</p>'; return; }
-      let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
-      orders.forEach(o => {
-        const date = new Date(o.created_at).toLocaleString();
-        html += `<div style="background:#f3ede5; border-radius:16px; padding:12px;">
-          <div style="display:flex; justify-content:space-between;"><strong>${o.description?.substring(0,30)||'Заказ'}</strong><span>${o.status}</span></div>
-          <div style="font-size:14px;">${date}</div></div>`;
-      });
-      html += '</div>';
-      listModalContent.innerHTML = html;
-    }
-    async function showMyMarketModal() {
-      listModalTitle.textContent = t('my_market');
-      listModalContent.innerHTML = '<p>Загрузка...</p>';
-      listModal.classList.add('show');
-      const { data: products } = await supabase.from('products').select('*').eq('user_id', currentUser.id).in('status', ['pending','approved']);
-      if (!products?.length) { listModalContent.innerHTML = '<p>Нет товаров</p>'; return; }
-      renderProductGrid(products, listModalContent);
-    }
-    closeListModal.addEventListener('click', () => listModal.classList.remove('show'));
-
-    document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsModal.classList.remove('show'));
-    themeToggle.addEventListener('change', (e) => { document.body.classList.toggle('dark', e.target.checked); localStorage.setItem('theme', e.target.checked ? 'dark' : 'light'); });
-    if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); themeToggle.checked = true; }
-
-    // Заглушки
-    document.getElementById('changeAvatarBtn').addEventListener('click', () => alert('Заглушка'));
-    document.getElementById('changePublicNameBtn').addEventListener('click', () => {
-      const newName = prompt('Новое имя:', profileDisplayName.textContent);
-      if (newName) profileDisplayName.textContent = newName;
-    });
-    document.getElementById('randomCocosBtn').addEventListener('click', () => rouletteModal.classList.add('show'));
-    document.getElementById('closeRouletteBtn').addEventListener('click', () => rouletteModal.classList.remove('show'));
-    document.getElementById('spinRouletteBtn').addEventListener('click', () => {
-      document.getElementById('prizeResult').textContent = ['🥥 10 Кокос Коин','🎁 Скидка 5%','🍍 Ананас','🥭 Манго'][Math.floor(Math.random()*4)];
-    });
-
-    // Автовход
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        supabase.from('users').select('*').eq('email', session.user.email).maybeSingle().then(({ data: dbUser }) => {
-          if (dbUser) { currentUser = dbUser; loginBtn.style.display='none'; userIconBtn.style.display='flex'; loadProducts(); }
+          reader.readAsDataURL(file);
         });
       }
-    });
+
+      // === ДОБАВЛЕНИЕ ТОВАРА ===
+      submitProductBtn.addEventListener('click', async () => {
+        if (!currentUser) { addMessage.textContent = '❌ Сначала войдите'; return; }
+        const title = productTitle.value.trim();
+        const desc = productDesc.value.trim();
+        const specs = productSpecs.value.trim();
+        const price = productPrice.value.trim();
+        const location = productLocation.value.trim();
+        if (!title || !desc || !price || !location) { addMessage.textContent = '❌ Заполните все обязательные поля'; return; }
+        if (!agreeCheckbox.checked) { addMessage.textContent = '❌ Примите соглашение'; return; }
+        if (selectedFiles.length === 0) { addMessage.textContent = '❌ Добавьте хотя бы одно фото'; return; }
+
+        submitProductBtn.disabled = true;
+        addMessage.textContent = '⏳ Загружаем...';
+        try {
+          const imageUrls = [];
+          for (const file of selectedFiles) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${currentUser.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage.from('product-images').upload(fileName, file);
+            if (uploadError) throw uploadError;
+            const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+            imageUrls.push(urlData.publicUrl);
+          }
+          const { error: insertError } = await supabase.from('products').insert({
+            user_id: currentUser.id, title, description: desc, characteristics: specs,
+            price: parseFloat(price), location, image_urls: imageUrls, status: 'pending'
+          });
+          if (insertError) throw insertError;
+          addMessage.textContent = '✅ Товар отправлен на модерацию!';
+          productTitle.value = productDesc.value = productSpecs.value = productPrice.value = productLocation.value = '';
+          selectedFiles = []; updatePhotoPreview(); agreeCheckbox.checked = false;
+          if (document.getElementById('home').classList.contains('active')) loadProducts();
+        } catch (err) {
+          addMessage.textContent = `❌ Ошибка: ${err.message}`;
+        } finally {
+          submitProductBtn.disabled = false;
+        }
+      });
+
+      // === ПРОФИЛЬ ===
+      async function loadProfileData() {
+        if (!currentUser) return;
+        profileDisplayName.textContent = currentUser.name || 'Гость';
+        profileEmail.textContent = currentUser.email || '';
+        const { data: userProducts } = await supabase.from('products').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+        const myContainer = document.getElementById('myProductsContainer');
+        const rejectedContainer = document.getElementById('rejectedContainer');
+        const all = userProducts || [];
+        const rejected = all.filter(p => p.status === 'rejected');
+        const active = all.filter(p => p.status !== 'rejected');
+        myContainer.innerHTML = active.length ? '' : `<p>${t('no_products')}</p>`;
+        rejectedContainer.innerHTML = rejected.length ? '' : `<p>${t('no_products')}</p>`;
+        if (active.length) renderProductGrid(active, myContainer);
+        if (rejected.length) renderProductGrid(rejected, rejectedContainer);
+      }
+
+      // === ДЕТАЛИ ТОВАРА ===
+      async function showProductDetails(productId) {
+        const { data: product } = await supabase.from('products').select('*').eq('id', productId).single();
+        if (!product) return;
+        const images = product.image_urls?.length ? product.image_urls : ['https://via.placeholder.com/400x300?text=🥥'];
+        let currentIndex = 0;
+        function renderCarousel() {
+          return `<div class="carousel">
+            <img class="carousel-main" src="${images[currentIndex]}">
+            ${images.length > 1 ? `<div class="carousel-nav"><button class="carousel-btn" id="prevImage">←</button><span>${currentIndex+1}/${images.length}</span><button class="carousel-btn" id="nextImage">→</button></div>
+            <div class="carousel-thumbs">${images.map((url, i) => `<img class="carousel-thumb ${i===currentIndex?'active':''}" src="${url}" data-index="${i}">`).join('')}</div>` : ''}
+          </div>`;
+        }
+        productDetailContent.innerHTML = `${renderCarousel()}
+          <h2>${product.title}</h2><div style="font-size:24px;font-weight:bold;">${product.price} ₽</div>
+          <div>📍 ${product.location}</div><div>📝 ${product.description}</div>
+          ${product.characteristics ? `<div>📋 ${product.characteristics}</div>` : ''}
+          <button class="btn" id="orderFromDetailBtn">${t('order_btn')}</button>`;
+        if (images.length > 1) {
+          document.getElementById('prevImage').addEventListener('click', () => { currentIndex = (currentIndex-1+images.length)%images.length; updateCarousel(); });
+          document.getElementById('nextImage').addEventListener('click', () => { currentIndex = (currentIndex+1)%images.length; updateCarousel(); });
+          document.querySelectorAll('.carousel-thumb').forEach(t => t.addEventListener('click', (e) => { currentIndex = parseInt(e.target.dataset.index); updateCarousel(); }));
+          function updateCarousel() {
+            document.querySelector('.carousel-main').src = images[currentIndex];
+            document.querySelectorAll('.carousel-thumb').forEach((t, i) => t.classList.toggle('active', i===currentIndex));
+            document.querySelector('.carousel-nav span').textContent = `${currentIndex+1}/${images.length}`;
+          }
+        }
+        document.getElementById('orderFromDetailBtn').addEventListener('click', () => alert('Заказ пока не готов'));
+        productModal.classList.add('show');
+      }
+
+      closeProductModal.addEventListener('click', () => productModal.classList.remove('show'));
+      productModal.addEventListener('click', (e) => { if (e.target === productModal) productModal.classList.remove('show'); });
+
+      // === ВХОД ===
+      loginBtn.addEventListener('click', () => { loginModal.classList.add('show'); emailStep.style.display='block'; codeStep.style.display='none'; });
+      sendCodeBtn.addEventListener('click', async () => {
+        const email = loginEmail.value.trim(); const name = loginNameInput.value.trim();
+        if (!email || !name) { emailMessage.textContent = '❌ Заполните поля'; return; }
+        currentEmail = email; pendingName = name;
+        sendCodeBtn.disabled = true;
+        const { error } = await supabase.auth.signInWithOtp({ email });
+        if (error) { emailMessage.textContent = `❌ ${error.message}`; sendCodeBtn.disabled = false; }
+        else { emailMessage.textContent = '✅ Код отправлен!'; emailStep.style.display='none'; codeStep.style.display='block'; sendCodeBtn.disabled = false; }
+      });
+      verifyCodeBtn.addEventListener('click', async () => {
+        const code = loginCode.value.trim();
+        if (code.length !== 6) { codeMessage.textContent = '❌ Введите 6 цифр'; return; }
+        verifyCodeBtn.disabled = true;
+        const { data, error } = await supabase.auth.verifyOtp({ email: currentEmail, token: code, type: 'email' });
+        if (error) { codeMessage.textContent = `❌ ${error.message}`; verifyCodeBtn.disabled = false; return; }
+        const user = data.user;
+        let { data: dbUser } = await supabase.from('users').select('*').eq('email', user.email).maybeSingle();
+        if (!dbUser) {
+          const { data: newUser } = await supabase.from('users').insert({ name: pendingName, email: user.email }).select().single();
+          dbUser = newUser;
+        } else {
+          await supabase.from('users').update({ name: pendingName }).eq('id', dbUser.id);
+          dbUser.name = pendingName;
+        }
+        currentUser = dbUser;
+        localStorage.setItem('coconutUserId', dbUser.id);
+        loginBtn.style.display = 'none'; userIconBtn.style.display = 'flex';
+        profilePopupName.textContent = dbUser.name;
+        loginModal.classList.remove('show');
+        emailStep.style.display='block'; codeStep.style.display='none';
+        loginEmail.value = loginNameInput.value = loginCode.value = '';
+        loadProducts();
+      });
+      backToEmailBtn.addEventListener('click', () => { emailStep.style.display='block'; codeStep.style.display='none'; });
+      logoutBtn.addEventListener('click', async () => {
+        await supabase.auth.signOut();
+        currentUser = null; localStorage.clear();
+        loginBtn.style.display = 'flex'; userIconBtn.style.display = 'none';
+        document.getElementById('productsContainer').innerHTML = `<p>${t('login_to_see')}</p>`;
+      });
+
+      // === ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ===
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.getElementById(btn.dataset.tab).classList.add('active');
+          if (btn.dataset.tab === 'home') loadProducts();
+          if (btn.dataset.tab === 'favorites') loadFavorites();
+          if (btn.dataset.tab === 'profile') loadProfileData();
+        });
+      });
+
+      // === МЕНЮ ПРОФИЛЯ ===
+      profileMenuBtn.addEventListener('click', () => contextMenu.classList.toggle('show'));
+      document.querySelectorAll('.context-item').forEach(item => item.addEventListener('click', (e) => {
+        const action = item.dataset.action;
+        contextMenu.classList.remove('show');
+        if (action === 'orders') showOrdersModal();
+        else if (action === 'mymarket') showMyMarketModal();
+        else if (action === 'settings') settingsModal.classList.add('show');
+        else alert(`Раздел "${item.textContent}" в разработке`);
+      }));
+
+      async function showOrdersModal() {
+        listModalTitle.textContent = t('all_orders');
+        listModalContent.innerHTML = '<p>Загрузка...</p>';
+        listModal.classList.add('show');
+        const { data: orders } = await supabase.from('orders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+        if (!orders?.length) { listModalContent.innerHTML = '<p>Нет заказов</p>'; return; }
+        let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
+        orders.forEach(o => {
+          const date = new Date(o.created_at).toLocaleString();
+          html += `<div style="background:#f3ede5; border-radius:16px; padding:12px;">
+            <div style="display:flex; justify-content:space-between;"><strong>${o.description?.substring(0,30)||'Заказ'}</strong><span>${o.status}</span></div>
+            <div style="font-size:14px;">${date}</div></div>`;
+        });
+        html += '</div>';
+        listModalContent.innerHTML = html;
+      }
+      async function showMyMarketModal() {
+        listModalTitle.textContent = t('my_market');
+        listModalContent.innerHTML = '<p>Загрузка...</p>';
+        listModal.classList.add('show');
+        const { data: products } = await supabase.from('products').select('*').eq('user_id', currentUser.id).in('status', ['pending','approved']);
+        if (!products?.length) { listModalContent.innerHTML = '<p>Нет товаров</p>'; return; }
+        renderProductGrid(products, listModalContent);
+      }
+      closeListModal.addEventListener('click', () => listModal.classList.remove('show'));
+
+      document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsModal.classList.remove('show'));
+      themeToggle.addEventListener('change', (e) => { document.body.classList.toggle('dark', e.target.checked); localStorage.setItem('theme', e.target.checked ? 'dark' : 'light'); });
+      if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); themeToggle.checked = true; }
+
+      // Заглушки
+      document.getElementById('changeAvatarBtn').addEventListener('click', () => alert('Заглушка'));
+      document.getElementById('changePublicNameBtn').addEventListener('click', () => {
+        const newName = prompt('Новое имя:', profileDisplayName.textContent);
+        if (newName) profileDisplayName.textContent = newName;
+      });
+      document.getElementById('randomCocosBtn').addEventListener('click', () => rouletteModal.classList.add('show'));
+      document.getElementById('closeRouletteBtn').addEventListener('click', () => rouletteModal.classList.remove('show'));
+      document.getElementById('spinRouletteBtn').addEventListener('click', () => {
+        document.getElementById('prizeResult').textContent = ['🥥 10 Кокос Коин','🎁 Скидка 5%','🍍 Ананас','🥭 Манго'][Math.floor(Math.random()*4)];
+      });
+
+      // Автовход
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          supabase.from('users').select('*').eq('email', session.user.email).maybeSingle().then(({ data: dbUser }) => {
+            if (dbUser) { currentUser = dbUser; loginBtn.style.display='none'; userIconBtn.style.display='flex'; loadProducts(); }
+          });
+        }
+      });
+    }
+    initSupabase();
   })();
 </script>
 </body>
