@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>Кокос Маркет 🥥</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23d4a373'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='white'%3E🥥%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAclJREFUWEftV0FuwjAQnU3FAXoEekKv0CPkCj1Cj5CrdhbGjpPE8ZKqUqUikA2e92beG2dmpTX5qK2txQd8kPkDmNf1G3BdV2BmT+B5vkTicrk8N5vNAwBvYRh+KKUeoyi6CyF8xHH8FgTBByIeoyj65rquC8Mw4HneJ/C6Xq8/kVI+m2bLst4ZY0+SJN0zxm7DMFw6jvOGiK8AAud5/oEx9iaKopvrum8A8Mo0zY9hGL7zPO+OiD8JIex5nq+IaIn4Kk3Tg23btxDR+75/opR6RkTJtu0JY+y20Wg8BEHwJQxD8H3/CxFfkGU9K6U+iKKoQwjhAACe5/kdEX8rpb6UUncA8BoEwSsi3jPGXrMse2ZZ1r1SCsZxfCKEfAEAtG37JQzDR57nvbIse4OIbziO8w4Avmzbvg/D8FkURY9pmt4BgEfTNCVj7FmWZe8QUZ7n+WcAa2mafpdleY+If8MwfGia5lEURU+CIHjDGHtjmiYyhiFkA6UUMjOUsYHsD21D20AzoY25gWbifwPTNA3TNJmm+W86jgN5b/LDwCyO42ee5z3Hcf6EPM9/x3H8CwDwT4S+XwV2GgAAAABJRU5ErkJggg==">
   <style>
     * { box-sizing: border-box; margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
     body { background: #f7f3e9; min-height: 100vh; padding: 12px; }
@@ -345,7 +345,6 @@
           el.textContent = t(key);
         }
       });
-      // Обновляем также кнопки в карточках, если они есть
       document.querySelectorAll('.product-card .btn').forEach(btn => {
         if (btn.textContent.includes('Заказать') || btn.textContent.includes('Order') || btn.textContent.includes('订购') || btn.textContent.includes('Поръчай')) {
           btn.textContent = t('order_btn');
