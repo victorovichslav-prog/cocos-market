@@ -558,12 +558,26 @@
       }
 
       // === ЗАГРУЗКА ФОТО С ДОБАВЛЕНИЕМ ===
-      productPhotos.addEventListener('change', (e) => {
-        const newFiles = Array.from(e.target.files);
-        selectedFiles = [...selectedFiles, ...newFiles].slice(0, 5);
-        updatePhotoPreview();
-        productPhotos.value = '';
-      });
+    productPhotos.addEventListener('change', (e) => {
+  const newFiles = Array.from(e.target.files);
+  const MAX_FILES = 5;
+  const MAX_SIZE_MB = 5;
+  const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+  
+  // Проверяем размер каждого нового файла
+  for (const file of newFiles) {
+    if (file.size > MAX_SIZE_BYTES) {
+      alert(`❌ Файл "${file.name}" слишком большой! Максимальный размер: ${MAX_SIZE_MB} МБ.`);
+      productPhotos.value = ''; // Очищаем input
+      return;
+    }
+  }
+  
+  // Добавляем только те файлы, которые прошли проверку
+  selectedFiles = [...selectedFiles, ...newFiles].slice(0, MAX_FILES);
+  updatePhotoPreview();
+  productPhotos.value = ''; // Сбрасываем input для повторной загрузки
+});
 
       function updatePhotoPreview() {
         photoPreview.innerHTML = '';
